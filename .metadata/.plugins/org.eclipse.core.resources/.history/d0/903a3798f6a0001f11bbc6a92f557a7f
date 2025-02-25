@@ -1,0 +1,64 @@
+package com.example.demo.application.service;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.Infraestructure.repository.ClientRepository;
+import com.example.demo.application.response.ClientResponse;
+import com.example.demo.application.validation.ClientValidationService;
+import com.example.demo.domain.entity.Client;
+
+import jakarta.transaction.Transactional;
+
+@Service
+public class ClientService {
+
+    @Autowired
+    private ClientRepository repository;
+    
+    @Autowired
+    private ClientValidationService validationService;
+    
+    
+    public Optional<ClientResponse> getById(Long id){
+        return repository.findById(id);
+    }
+    
+    public Client registerClient(Client client) {
+    	
+    	if (!validationService.paramsExists(client.getName(), client.getEmail(), client.getPhoneNumber())) {
+    		repository.save(client);
+            return client;
+    	}
+        return null;
+        
+    }
+    
+    @Transactional
+    public Client updateClient(Long id, String name, String email, Long phonenumber, LocalDate birthdate, String image) {
+    	
+    	Client client = repository.findById(id)
+    			.orElseThrow(()-> new IllegalStateException("El cliente no existe"));
+    	
+    	if (!validationService.exists(() -> repository.nameExists(name), "name")) {
+    		validationService.updateElement(name, client::setName, client::getName);
+    	}
+
+    	if (!validationService.exists(() -> repository.emailExists(email), "email")) {
+    		validationService.updateElement(email, client::setEmail, client::getEmail);
+    	}
+    	
+    	if (!validationService.exists(() -> repository.phoneExists(phonenumber), "teléfono")) {
+    		validationService.updateElement(phonenumber, client::setPhoneNumber, client::getPhoneNumber);
+    	}
+    	
+    	validationService.updateElement(image, client::setImage, client::getImage);
+    	
+    	validationService.updateElement(birthdate, client::setBirthDate, client::getBirthDate);
+    	
+    	return client;
+    }
+}

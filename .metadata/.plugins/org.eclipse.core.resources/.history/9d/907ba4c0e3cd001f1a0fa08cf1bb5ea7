@@ -1,0 +1,14 @@
+spring.application.name=nutrition-discovery-service
+
+server.port=5001
+
+eureka.server.eviction-interval-timer-in-ms=60000
+eureka.server.renewal-threshold-update-interval-ms=30000
+
+eureka.client.fetch-registry=true
+eureka.client.register-with-eureka=false
+
+logging.level.com.netflix.eureka=DEBUG
+logging.level.com.netflix.discovery=DEBUG
+
+eureka.client.service-url.defaultZone=http://localhost:5000/eureka/,http://localhost:5001/eureka/,http://localhost:5002/eureka/

@@ -1,0 +1,14 @@
+spring.application.name=api-gateway
+
+server.error.include-message=always
+
+logging.level.org.yourpackage=DEBUG
+
+server.port=0
+server.servlet.context-path=/gateway-app/api
+
+eureka.instance.lease-renewal-interval-in-seconds=10  
+eureka.instance.lease-expiration-duration-in-seconds=30
+eureka.client.service-url.defaultZone = http://localhost:5003/eureka
+
+spring.cloud.loadbalancer.enabled=true

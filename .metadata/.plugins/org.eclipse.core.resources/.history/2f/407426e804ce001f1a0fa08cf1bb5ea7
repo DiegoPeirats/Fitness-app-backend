@@ -1,0 +1,16 @@
+spring.application.name=customer-discovery-service
+
+server.port=5000
+
+eureka.server.eviction-interval-timer-in-ms=60000
+eureka.server.renewal-threshold-update-interval-ms=30000
+
+eureka.instance.lease-renewal-interval-in-seconds=10  
+eureka.instance.lease-expiration-duration-in-seconds=30 
+
+eureka.client.fetch-registry=true
+eureka.client.register-with-eureka=false
+
+eureka.client.service-url.defaultZone=http://localhost:5002/eureka/
+
+

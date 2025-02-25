@@ -1,0 +1,26 @@
+# Archivos y carpetas de compilación
+target/
+build/
+out/
+
+# Archivos de configuración de IDE (Eclipse, IntelliJ, VSCode)
+*.iml
+.idea/
+.vscode/
+.project
+.classpath
+.settings/
+
+# Dependencias y librerías
+*.jar
+*.war
+*.ear
+
+# Archivos de logs
+*.log
+logs/
+
+# Variables de entorno y credenciales
+.env
+application.properties
+application.yml

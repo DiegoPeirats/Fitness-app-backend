@@ -1,0 +1,124 @@
+package com.example.demo.application.service;
+
+import java.util.Optional;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.Infraestructure.client.AddressClient;
+import com.example.demo.Infraestructure.client.CustomerInfoClient;
+import com.example.demo.Infraestructure.client.PhysicInfoClient;
+import com.example.demo.Infraestructure.request.ClientRequest;
+import com.example.demo.Infraestructure.response.Address;
+import com.example.demo.Infraestructure.response.CustomerInfo;
+import com.example.demo.Infraestructure.response.PhysicalCondition;
+import com.example.demo.application.response.AddressResponse;
+import com.example.demo.application.response.CustomerInfoResponse;
+import com.example.demo.application.response.PhysicalConditionResponse;
+import com.example.demo.domain.entity.Client;
+
+
+@Service
+public class ClientService {
+    
+    @Autowired
+	private CustomerInfoClient customerInfoClient;
+    
+    @Autowired
+	private AddressClient addressClient;
+    
+    @Autowired
+	private PhysicInfoClient physicClient;
+    
+	@Autowired 
+	private ModelMapper modelMapper;
+    
+    
+	public Optional<Client> getById(Long id) {
+	    
+	    Client client = new Client();
+	    
+	    Optional<Address> addressOptional = addressClient.getAddressById(id);
+	    if (addressOptional.isPresent()) {
+	        AddressResponse addressResponse = modelMapper.map(addressOptional.get(), AddressResponse.class);
+	        client.setAddress(addressResponse); 
+	    }
+	    
+	    Optional<PhysicalCondition> physicalConditionOptional = physicClient.getPhysicalConditionById(id);
+	    if (physicalConditionOptional.isPresent()) {
+	        PhysicalConditionResponse physicalConditionResponse = modelMapper.map(physicalConditionOptional.get(), PhysicalConditionResponse.class);
+	        client.setPhysicInfo(physicalConditionResponse); 
+	    }
+	    
+	    Optional<CustomerInfo> customerInfoOptional = customerInfoClient.getCustomerInfoById(id);
+	    if (customerInfoOptional.isPresent()) {
+	    	System.out.println(customerInfoOptional.get());
+	        CustomerInfoResponse customerInfoResponse = modelMapper.map(customerInfoOptional.get(), CustomerInfoResponse.class);
+	        client.setCustomerInfo(customerInfoResponse); 
+	    }
+
+	    if (addressOptional.isEmpty() && physicalConditionOptional.isEmpty() && customerInfoOptional.isEmpty()) {
+	        return Optional.empty();
+	    }
+	    else {
+	    	client.setId(id);
+	    }
+
+	    return Optional.of(client);
+	}
+
+    
+    public ClientRequest registerClient(CustomerInfo customerInfo, Address address, PhysicalCondition pc) {
+    	
+        Long clientId = customerInfoClient.getLastId() + 1;
+    	
+        address.setId(clientId);
+        pc.setId(clientId);
+        customerInfo.setId(clientId);
+
+        ClientRequest clientReq = new ClientRequest(); 
+
+    	ResponseEntity<CustomerInfo> registeredCustomerInfo = customerInfoClient.registerCustomerInfo(customerInfo);
+    	if (registeredCustomerInfo.getStatusCode() == HttpStatus.CREATED) {
+
+        	ResponseEntity<Address> registeredAddress = addressClient.registerAddress(address);
+        	if (registeredAddress.getStatusCode() == HttpStatus.CREATED) {
+
+            	ResponseEntity<PhysicalCondition> registeredPhysicalCondition = physicClient.registerPhysicalCondition(pc);
+            	if (registeredPhysicalCondition.getStatusCode() == HttpStatus.CREATED) {
+            		
+            		clientReq.setCustomer(registeredCustomerInfo.getBody());
+                    clientReq.setAddress(registeredAddress.getBody());
+                    clientReq.setPc(registeredPhysicalCondition.getBody());
+            	}
+            	else {
+            		addressClient.deleteAddress(clientId);
+            		customerInfoClient.deleteCustomerInfo(clientId);
+            	}
+        	}
+        	else {
+        		customerInfoClient.deleteCustomerInfo(clientId);
+        	}
+    	}
+
+        return clientReq;
+    }
+    
+    public Address updateAddress(Long id, Address address) {
+    	addressClient.updateAddress(id, address);
+    	return address;
+    }
+    
+    public CustomerInfo updateCustomerInfo(Long id, CustomerInfo ci) {
+    	customerInfoClient.updateCustomerInfo(id, ci);
+    	return ci;
+    }
+    
+    public PhysicalCondition updatePhysicalCondition(Long id, PhysicalCondition pc) {
+    	physicClient.updatePhysicInfo(id, pc);
+    	return pc;
+    }
+}
